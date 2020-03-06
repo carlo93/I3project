@@ -38,6 +38,10 @@ class User extends Authenticatable
 //        'email_verified_at' => 'datetime',
 //    ];
 
+    public static $rules = [
+        'full_name' => 'required',
+        'email' => 'required|email|unique:users,email,'
+    ];
 
     public function transactions()
     {

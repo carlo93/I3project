@@ -2,11 +2,14 @@
 
 namespace App\Http\Controllers\Auth;
 
+use Illuminate\Http\Request;
 use App\User;
 use App\Http\Controllers\Controller;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Validator;
+use Illuminate\Auth\Events\Registered;
 use Illuminate\Foundation\Auth\RegistersUsers;
+use Illuminate\Support\Facades\Auth;
 
 class RegisterController extends Controller
 {
@@ -21,7 +24,7 @@ class RegisterController extends Controller
     |
     */
 
-    use RegistersUsers;
+//    use RegistersUsers;
 
     /**
      * Where to redirect users after registration.
@@ -41,6 +44,47 @@ class RegisterController extends Controller
     }
 
     /**
+     * Show the application registration form.
+     *
+     * @return \Illuminate\Http\Response
+     */
+    public function showRegistrationForm()
+    {
+        return view('auth.register');
+    }
+
+    /**
+     * Handle a registration request for the application.
+     *
+     * @param  \Illuminate\Http\Request  $request
+     * @return \Illuminate\Http\Response
+     */
+    public function register(Request $request)
+    {
+        $this->validator($request->all())->validate();
+
+
+        // User Details
+        $user['full_name'] = $request['full_name'];
+        $user['email'] = $request['email'];
+        $user['balance'] = $request['balance'];
+
+        event(new Registered($user = $this->create($user)));
+
+        return redirect('/login');
+    }
+
+    /**
+     * Get the guard to be used during registration.
+     *
+     * @return \Illuminate\Contracts\Auth\StatefulGuard
+     */
+    protected function guard()
+    {
+        return Auth::guard();
+    }
+
+    /**
      * Get a validator for an incoming registration request.
      *
      * @param  array  $data
@@ -50,7 +94,7 @@ class RegisterController extends Controller
     {
         return Validator::make($data, [
             'full_name' => ['required', 'string', 'max:255'],
-            'email' => ['required', 'string', 'max:255'],
+            'email' => 'required|string|email|max:255|unique:users',
             'balance' => ['required',],
         ]);
     }
